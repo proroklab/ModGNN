@@ -8,7 +8,7 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 # • Extend GNN_Node and implement the finput, fcom, ... submodules. Remember to register parameters
 # • GNN(finput=finput_gen, fcom=fcom_gn, ...), where finput_gen = (finput, finput_params)
 
-class GNN_Node(nn.Module):
+class GNNnode(nn.Module):
 
 	def __init__(self, **kwargs):
 		super().__init__()

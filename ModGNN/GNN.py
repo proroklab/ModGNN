@@ -1,5 +1,5 @@
 import torch
-from ModGNN.GNN_Node import *
+from ModGNN.GNNnode import GNNnode
 import itertools
 import torch.nn as nn
 
@@ -11,7 +11,7 @@ class GNN(nn.Module):
 		super().__init__()
 		self.K = K
 		self.layers = len(layers)
-		self.network = list(map(lambda layer: GNN_Node(**kwargs) if (layer is None) else layer, layers))
+		self.network = list(map(lambda layer: GNNnode(**kwargs) if (layer is None) else layer, layers))
 		for layer in range(self.layers):
 			self.add_module("gnn_node_%d" % layer, self.network[layer])
 		self.forward_batch = self.forward
