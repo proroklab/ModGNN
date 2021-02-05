@@ -117,7 +117,7 @@ class GNNnode(nn.Module):
 
 	def send(self):
 		# aggregates each neighbourhood of stored data from k=0 to K=K-1
-		self.y = torch.stack([sum(self.Y[k]) for k in range(self.K)], dim=1) # x: batch x K x Dobs
+		self.y = self.Y[:,:,:-1,:].sum(dim=1)
 		return self.y
 
 
