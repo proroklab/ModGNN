@@ -76,8 +76,8 @@ class GNNnode(nn.Module):
 		# A: batch x N x N (most recent adjacency matrix)
 		# X: batch x N x N x K+1 x D (last K+1 time steps of the joint state)
 		batch, N, _, K, _ = X.shape; K -= 1
-		I = torch.eye(N, device=device).repeat(batch,1,1,1)
-		Ak = torch.cat([I, A.unsqueeze(1).expand(-1,-1,-1,K)], dim=3).unsqueeze(4) # Ak: batch x N x N x K+1 x 1
+		I = torch.eye(N, device=device).unsqueeze(0).unsqueeze(3).repeat(batch,1,1,1)
+		Ak = torch.cat([I, A.unsqueeze(3).expand(-1,-1,-1,K)], dim=3).unsqueeze(4) # Ak: batch x N x N x K+1 x 1
 		# fpre
 		fpre_out = self.fpre(X.view(batch*N*N, K+1, -1)).view(batch, N, N, K+1, -1) # fpre_out: batch x N x N x K+1 x D_pre
 		Z1 = (Ak * fpre_out).sum(dim=2) # Z1: batch x N x K+1 x Dpre
@@ -97,20 +97,20 @@ class GNNnode(nn.Module):
 		self.batch = self.x.shape[0]
 		self.Dinput = self.x.shape[1]
 		if self.Y is None:
-			self.Y = torch.zeros(self.batch, 1, self.K+1, self.Dobs)
+			self.Y = torch.zeros(self.batch, 1, self.K+1, self.Dinput)
 		self.Y[:,0,0,:] = self.x
 
 
 	def receive(self, incoming):
-		# incoming: list of data of shape (batch x K x Dobs) from each neighbouring agent
+		# incoming: list of data of shape (batch x K x Dinput) from each neighbouring agent
 		Ni = len(incoming)
-		X = torch.stack([self.y] + incoming, dim=2) # X: batch x K x Ni+1 x Dobs
+		X = torch.stack([self.y] + incoming, dim=2) # X: batch x K x Ni+1 x Dinput
 		A0 = torch.zeros(self.batch, Ni+1, Ni+1)
 		A0[:,0,1:] = 1
 		A = A0.repeat(1,self.K,1,1) # A: batch x K x N+1 x N+1
 		Xc = self.fcom(A.view(self.batch*self.K, Ni+1, Ni+1), X.view(self.batch*self.K, Ni+1, self.Dinput)) \
-					 .view(self.batch, self.K, Ni+1, Ni+1, self.Dinput)[:,:,0,:,:] # Xc: batch x K x Ni x Dobs
-		self.Y = torch.zeros(self.batch, Ni+1, self.K+1, self.Dinput) # Y: batch x Ni+1 x K+1 x Dobs
+					 .view(self.batch, self.K, Ni+1, Ni+1, self.Dinput)[:,:,0,:,:] # Xc: batch x K x Ni x Dinput
+		self.Y = torch.zeros(self.batch, Ni+1, self.K+1, self.Dinput) # Y: batch x Ni+1 x K+1 x Dinput
 		self.Y[:,0,0,:] = self.x
 		self.Y[:,1:,1:,:] = Xc.permute(0,2,1,3)
 

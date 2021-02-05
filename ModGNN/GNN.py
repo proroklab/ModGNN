@@ -19,14 +19,14 @@ class GNN(nn.Module):
 	def forward(self, A, X):
 		# A: batch x (K+1)+(nLayers-1) x N x N
 		# X: batch x (K+1)+(nLayers-1) x N x D
-		batch, N, Dobs, K = X.shape; K -= 1
+		batch, _, N, Dobs = X.shape; K -= 1
 		# Multi Layer
 		layer_outputs = []
 		for layer in range(self.layers):
 			# Apply finput
 			layer_time = self.layers-1 - layer
-			obs = X[:,layer_time:layer_time+self.K+1,:,:].view(batch * (K+1) * N, Dobs)
-			Xc = self.network[layer].finput(obs, *layer_outputs).view(batch, K+1, N, -1)
+			obs = X[:,layer_time:layer_time+self.K+1,:,:].view(batch * (self.K+1) * N, Dobs)
+			Xc = self.network[layer].finput(obs, *layer_outputs).view(batch, self.K+1, N, -1)
 			Ac = A[:,layer_time:layer_time+self.K,:,:]
 			Dinput = Xc.shape[-1]
 			# Calculate Y[k], the aggregated information from a k-hop neighbourhood
