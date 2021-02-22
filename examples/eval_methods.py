@@ -4,7 +4,7 @@ import torch
 
 def main():
 	# init
-	K = 1
+	K = 3
 	N = 5
 	DIM = 3
 	# test data

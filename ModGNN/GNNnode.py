@@ -14,7 +14,7 @@ class GNNnode(nn.Module):
 		super().__init__()
 		for fname, fgen in kwargs.items():
 			if fname in ['finput','fcom','fpre','fmid','ffinal']:
-				self.add_submodule(fname, fgen)
+				self.add_submodule(fname, fgen[0], fgen[1])
 		self.K = K
 		self.Y = None
 		self.y = None
@@ -48,15 +48,15 @@ class GNNnode(nn.Module):
 		return X
 
 
-	def add_submodule(self, fname, fgen):
+	def add_submodule(self, fname, func, params):
 		# fgen is a tuple of (submodule, param_list)
-		func, param_list = fgen
 		setattr(self, fname, func)
-		self.register_params(param_list, name=fname)
+		self.register_params(params, name=fname)
 		
 
 	def register_params(self, params, name=""):
 		# params can be a module, list, dict, or generator
+		# import pdb; pdb.set_trace()
 		if params is None:
 			return
 		if isinstance(params, types.GeneratorType):
@@ -69,7 +69,7 @@ class GNNnode(nn.Module):
 			if isinstance(layer,torch.nn.parameter.Parameter):
 				self.register_parameter("%s_param_%d" % (name, i), layer)
 			else:
-				self.add_module("%s_module_%d" % (name, i), layer)
+				self.add_module("%s_%d" % (name, i), layer)
 
 
 	def forward(self, A, X):
