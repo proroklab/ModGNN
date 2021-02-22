@@ -125,13 +125,13 @@ class GNNnode(nn.Module):
 		mask[0,1:,:] = 0
 		# fpre
 		fpre_out = self.fpre(X) # fpre_out: Ni+1 x K+1 x D_pre
-		Z1 = (mask * fpre_out).sum(dim=0) # Z1: K+1 x Dpre
+		Z1 = (mask * fpre_out).sum(dim=0).unsqueeze(0) # Z1: 1 x K+1 x Dpre
 		# fmid
-		fmid_out = self.fmid(Z1) # fmid_out: K+1 x D_mid
-		Z2 = fmid_out.sum(dim=0) # Z2: D_post
+		fmid_out = self.fmid(Z1) # fmid_out: 1 x K+1 x D_mid
+		Z2 = fmid_out.sum(dim=1) # Z2: 1 x D_post
 		# ffinal
-		output = self.ffinal(Z2) # output: D_final
-		return output
+		output = self.ffinal(Z2) # output: 1 x D_final
+		return output[0,:]
 
 
 
