@@ -5,6 +5,7 @@ A modular graph neural network framework implemented in pytorch. The framework h
 * [Installation](#installation)
 * [Example](#example)
 * [Documentation](#documentation)
+* [Architecture](#architecture)
 
 ## Installation
 
@@ -94,7 +95,7 @@ First, we compute $\mathbf{c}_i^{(l)}(t)$, the compressed input to agent i at la
 
 Next, data is transmitted from each agent to all of its neighbours. The data from previous timesteps are cached, so an agent can obtain k-hop data at time t by requesting (k-1)-hop data from time t-1 from its neighbours. The benefit to this communication scheme is that only one communication is required per timestep. The GCN does not specifically define a message aggregation module because it is formulated in a centralised setting, but the naive method is to perform K successive communication steps.
 
-Every time agent i receives data from its neighbours, the $|\mathcal{N}_i(t)|$ incoming vectors are passed through an $f_\mathrm{com}^{(l)}$ function, and then aggregated together (Fig. \ref{fig:CommunicationSystem}). The $f_\mathrm{com}^{(l)}$ submodule defines the graph shift operator (GSO). For example, if $f_\mathrm{com}^{(l)}$ subtracts the local state from each incoming state, then the resulting GSO is the Laplacian. One can also use $f_\mathrm{com}^{(l)}$ to implement an attention mechanism \cite{GraphAttention} or a coordinate transformation system to shift the observations into the local reference frame.
+Every time agent i receives data from its neighbours, the $|\mathcal{N}_i(t)|$ incoming vectors are passed through an $f_\mathrm{com}^{(l)}$ function, and then aggregated together. The $f_\mathrm{com}^{(l)}$ submodule defines the graph shift operator (GSO). For example, if $f_\mathrm{com}^{(l)}$ subtracts the local state from each incoming state, then the resulting GSO is the Laplacian. One can also use $f_\mathrm{com}^{(l)}$ to implement an attention mechanism \cite{GraphAttention} or a coordinate transformation system to shift the observations into the local reference frame.
 
 Let $\mathbf{y}_{ij}^{(l)(k)}(t)$ be the data in layer l from a k-hop neighbourhood received by agent i at time t. We define $\mathcal{Y}_i^{(l)(k)}(t)$ as the set of all transmissions that agent i receives at time t from a k-hop neighbourhood in layer l:
 
