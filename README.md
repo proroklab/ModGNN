@@ -77,13 +77,13 @@ The ```ModGNN.GNNnode``` class implements local GNN operations, while the ```Mod
 
 ### Multi-Layer Architecture
 
-![Our framework's entire multi-layer architecture. At each layer, the message aggregation module disseminates the output from the last layer, and then the GNN node uses the data from all of the previous layers to compute an output.](https://github.com/Acciorocketships/ModGNN/images/WholeArchitecture.png)
+![Our framework's entire multi-layer architecture. At each layer, the message aggregation module disseminates the output from the last layer, and then the GNN node uses the data from all of the previous layers to compute an output.](https://github.com/Acciorocketships/ModGNN/blob/main/images/WholeArchitecture.png)
 
 Our framework provides infrastructure for multi-layer GNNs. Each layer consists of a message aggregation module to transmit data, and a GNN node to compute the output (Fig. \ref{fig:WholeArchitecture}). For extra flexibility, the input consists of the outputs of all previous layers, but this extra data can easily be masked out if it is not required. Each layer can have different architectures for analogous submodules, but in some cases it makes sense to use the same architecture with parameter sharing.
 
 ### Message Aggregation Module
 
-![Our framework's message aggregation module. First, the raw observation or output from the last layer is transformed by f_input. Then, for each transmission up to K hops, the data from the neighbouring agents is passed through f_com and then aggregated. The input to the GNN node is the set of the data from each $k$-hop neighbourhood up to K.](https://github.com/Acciorocketships/ModGNN/images/CommunicationSystem.png)
+![Our framework's message aggregation module. First, the raw observation or output from the last layer is transformed by f_input. Then, for each transmission up to K hops, the data from the neighbouring agents is passed through f_com and then aggregated. The input to the GNN node is the set of the data from each $k$-hop neighbourhood up to K.](https://github.com/Acciorocketships/ModGNN/blob/main/images/CommunicationSystem.png)
 
 The first step in our message aggregation module is to compress the raw observation with an $f_\mathrm{input}$ function. This step is not only useful for transforming the observation into the desired shape (for example, a CNN can be applied to image observations to flatten the data before it is transmitted---it also provides an opportunity for the observation to be transformed before all of the aggregation steps. Aggregation is a lossy operation, so it is important to transform the data into a space that preserves the most important information. Qualitatively, the purpose of the $f_\mathrm{input}$ submodule can be viewed as learning which information to communicate.
 
@@ -113,7 +113,7 @@ $$ \mathcal{Z}_i^{(l)}(t) = \left\{ \mathcal{Y}_i^{(l)(k)}(t) \; \middle| \; k \
 
 ### GNN Node Architecture
 
-![Our framework's GNN Node architecture. First, f_pre is applied to the incoming transmissions from each neighbour, and the data from those neighbours is aggregated together (in effect, completing the last aggregation of the message aggregation module). Next, the combined data from each of the K+1 neighbourhoods is passed through f_mid and aggregated together. Lastly, f_final is applied to produce the final output.](https://github.com/Acciorocketships/ModGNN/images/GNNnode.png)
+![Our framework's GNN Node architecture. First, f_pre is applied to the incoming transmissions from each neighbour, and the data from those neighbours is aggregated together (in effect, completing the last aggregation of the message aggregation module). Next, the combined data from each of the K+1 neighbourhoods is passed through f_mid and aggregated together. Lastly, f_final is applied to produce the final output.](https://github.com/Acciorocketships/ModGNN/blob/main/images/GNNnode.png)
 
 The GNN node is comprised of two aggregation steps and three user-defined submodules. The first aggregation step combines the states from the $\mathcal{N}_i(t)$ neighbours of agent $i$ (summing along the same dimension as the aggregation operations in the message aggregation module). The second aggregation step combines data from the $K+1$ different neighbourhoods. The three user-defined submodules are interspersed throughout the model in the spaces between the aggregation steps. We use $\mathbf{x}^{(l)}_i(t)$ to represent the output of the GNN node
 
