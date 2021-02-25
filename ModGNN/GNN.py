@@ -46,6 +46,9 @@ class GNN(nn.Module):
 		[tensor of size (batch x N x Dout)] The joint output of the multiagent system at the current timestep.
 
 		"""
+		if len(X.shape) == 3:
+			A = A.unsqueeze(1).repeat(1,self.K+1,1,1)
+			X = X.unsqueeze(1).repeat(1,self.K+1,1,1)
 		batch, _, N, Dobs = X.shape  # A: batch x (K+1)+(nLayers-1) x N x N      X: batch x (K+1)+(nLayers-1) x N x D
 		# Multi Layer
 		for layer in range(self.layers):
