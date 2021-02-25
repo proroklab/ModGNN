@@ -98,13 +98,6 @@ def ffinal_gen(in_dim=6, out_dim=3):
 	return ffinal, net
 
 
-# Other
-
-def random_adjacency(N, fill=0.6):
-	B = (torch.rand(N,N) < torch.sqrt(torch.tensor(fill))).float()
-	A = B * B.T
-	torch.diagonal(A).fill_(0)
-	return A
 
 if __name__ == '__main__':
 	main()

@@ -6,12 +6,26 @@ import torch.nn as nn
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 class GNN(nn.Module):
+	"""
+	A torch.nn.Module that handles the evaluation of a GNN in a centralised setting.
+	Each layer of the GNN is defined by a single GNNnode. During training/evaluation, that GNNnode is "copied" for every agent in the system (parameter sharing)
+	A tensor of the current and K preceding timesteps of the joint state X and adjacency matrix A is required to produce an outupt.
+
+	Attributes
+	----------
+	K : [(int), default=1] The number of communication "hops" to use. Each agent will receive data grouped by the number of communications hops it took from its source. There are K+1 neighbourhoods, because the local K=0 data is included.
+	layers: [(list), default=[None]] A list of GNNnode objects, each representing a layer of the GNN (usually a one-layer gnn  is sufficient len(layers)=1). If any elements of layers is None, a GNNnode will be constructed automatically with the given kwargs: GNNnode(**kwargs)
+
+	Methods
+	-------
+	forward(A, X) : calculates the joint output given the last K+1 timesteps of the joint state and adjacency matrix
+	"""
 
 	def __init__(self, K=1, layers=[None], **kwargs):
 		super().__init__()
 		self.K = K
 		self.layers = len(layers)
-		self.network = list(map(lambda layer: GNNnode(**kwargs) if (layer is None) else layer, layers))
+		self.network = list(map(lambda layer: GNNnode(K=K, **kwargs) if (layer is None) else layer, layers))
 		for layer in range(self.layers):
 			self.add_module("gnn_node_%d" % layer, self.network[layer])
 		self.Z = [None for _ in range(self.layers)]
@@ -19,15 +33,25 @@ class GNN(nn.Module):
 
 
 	def forward(self, A, X):
-		# A: batch x (K+1)+(nLayers-1) x N x N
-		# X: batch x (K+1)+(nLayers-1) x N x D
-		batch, _, N, Dobs = X.shape
+		"""
+		Calculates the joint output given the last K+1 timesteps of the joint state and adjacency matrix
+
+		Parameters
+		----------
+		A : [tensor of size (batch x (K+1)+(nLayers-1) x N x N)] The adjacency matrix. dim=0 is the batch dimension, dim=1 is the temporal dimension where index 0 is the current timestep. In dim=2,3, if agent i can receive data from agent j, then A[•,•,i,j]=1, and otherwise A[•,•,i,j]=0
+		X : [tensor of size (batch x (K+1)+(nLayers-1) x N x Dobs)] The joint state. dim=0 is the batch dimension, dim=1 is the temporal dimension where index 0 is the current timestep. In dim=2,3, X[•,•,i,:] is the observation of agent i
+		
+		Output
+		-------
+		[tensor of size (batch x N x Dout)] The joint output of the multiagent system at the current timestep.
+
+		"""
+		batch, _, N, Dobs = X.shape  # A: batch x (K+1)+(nLayers-1) x N x N      X: batch x (K+1)+(nLayers-1) x N x D
 		# Multi Layer
-		# TODO: delayed layers
 		for layer in range(self.layers):
 			## Apply finput
 			layer_time = self.layers-1 - layer
-			obs = X[:,layer_time:layer_time+self.K+1,:,:].view(batch * (self.K+1) * N, Dobs)
+			obs = X[:,layer_time:layer_time+self.K+1,:,:].view(batch * (self.K+1) * N, Dobs) # TODO: delayed layers
 			Xc = self.network[layer].finput(obs, *self.layer_outputs[:-1]).view(batch, self.K+1, N, -1)
 			Ac = A[:,layer_time:layer_time+self.K,:,:]
 			Dinput = Xc.shape[-1]
@@ -49,4 +73,3 @@ class GNN(nn.Module):
 			self.layer_outputs[layer] = output
 		# Return output of last layer
 		return self.layer_outputs[-1] # output: batch x N x Dout
-
