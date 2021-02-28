@@ -264,6 +264,11 @@ class GNNnode(nn.Module):
 		self.x = None
 
 
+	def to(self, device):
+		super().to(device)
+		self.device = device
+
+
 
 
 
