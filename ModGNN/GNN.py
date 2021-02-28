@@ -3,7 +3,6 @@ from ModGNN.GNNnode import GNNnode
 import itertools
 import torch.nn as nn
 
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 class GNN(nn.Module):
 	"""

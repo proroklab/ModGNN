@@ -2,7 +2,6 @@ import torch.nn as nn
 import torch
 import types
 
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 class GNNnode(nn.Module):
 	"""
@@ -44,6 +43,8 @@ class GNNnode(nn.Module):
 			if fname in ['finput','fcom','fpre','fmid','ffinal']:
 				self.add_submodule(fname, fgen[0], fgen[1])
 		self.K = K
+		params = list(self.parameters())
+		self.device = params[0].device if len(params)>0 else torch.device('cpu')
 		self.clear()
 
 
@@ -163,7 +164,7 @@ class GNNnode(nn.Module):
 		# A: batch x N x N (most recent adjacency matrix)
 		# X: batch x N x N x K+1 x D (last K+1 time steps of the joint state)
 		batch, N, _, K, _ = X.shape; K -= 1
-		I = torch.eye(N, device=device).unsqueeze(0).unsqueeze(3).repeat(batch,1,1,1)
+		I = torch.eye(N, device=self.device).unsqueeze(0).unsqueeze(3).repeat(batch,1,1,1)
 		Ak = torch.cat([I, A.unsqueeze(3).expand(-1,-1,-1,K)], dim=3).unsqueeze(4) # Ak: batch x N x N x K+1 x 1
 		# fpre
 		fpre_out = self.fpre(X.view(batch*N*N, K+1, -1)).view(batch, N, N, K+1, -1) # fpre_out: batch x N x N x K+1 x D_pre
@@ -187,9 +188,9 @@ class GNNnode(nn.Module):
 		"""
 		# x : D_obs
 		x = self.finput(obs)
-		self.Dinput = self.x.shape[0]
+		self.Dinput = x.shape[0]
 		if self.Y is None:
-			self.clear()
+			self.Y = torch.zeros(1, self.K+1, self.Dinput)
 		self.Y[0,0,:] = x
 		self.x = x
 
@@ -206,11 +207,11 @@ class GNNnode(nn.Module):
 		"""
 		Ni = len(incoming)
 		X = torch.stack([self.y] + incoming, dim=1) # X: K x Ni+1 x Dinput
-		A0 = torch.zeros(Ni+1, Ni+1)
+		A0 = torch.zeros(Ni+1, Ni+1, device=self.device)
 		A0[0,1:] = 1
 		A = A0.repeat(self.K,1,1) # A: K x N+1 x N+1
 		Xc = self.fcom(A, X)[:,0,:,:] # Xc: K x Ni x Dinput
-		self.Y = torch.zeros(Ni+1, self.K+1, self.Dinput) # Y: Ni+1 x K+1 x Dinput
+		self.Y = torch.zeros(Ni+1, self.K+1, self.Dinput, device=self.device) # Y: Ni+1 x K+1 x Dinput
 		self.Y[0,0,:] = self.x
 		self.Y[1:,1:,:] = Xc[:,1:,:].permute(1,0,2)
 
