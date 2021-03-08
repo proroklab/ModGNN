@@ -164,7 +164,7 @@ class GNNnode(nn.Module):
 		# A: batch x N x N (most recent adjacency matrix)
 		# X: batch x N x N x K+1 x D (last K+1 time steps of the joint state)
 		batch, N, _, K, _ = X.shape; K -= 1
-		I = torch.eye(N, device=self.device).unsqueeze(0).unsqueeze(3).repeat(batch,1,1,1)
+		I = torch.eye(N, device=A.device).unsqueeze(0).unsqueeze(3).repeat(batch,1,1,1)
 		Ak = torch.cat([I, A.unsqueeze(3).expand(-1,-1,-1,K)], dim=3).unsqueeze(4) # Ak: batch x N x N x K+1 x 1
 		# fpre
 		fpre_out = self.fpre(X.view(batch*N*N, K+1, -1)).view(batch, N, N, K+1, -1) # fpre_out: batch x N x N x K+1 x D_pre
