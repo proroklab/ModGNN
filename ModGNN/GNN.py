@@ -29,6 +29,8 @@ class GNN(nn.Module):
 			self.add_module("gnn_node_%d" % layer, self.network[layer])
 		self.Z = [None for _ in range(self.layers)]
 		self.layer_outputs = [None for _ in range(self.layers)]
+		params = list(self.parameters())
+		self.device = params[0].device if len(params)>0 else torch.device('cpu')
 
 
 	def forward(self, A, X):
@@ -75,3 +77,8 @@ class GNN(nn.Module):
 			self.layer_outputs[layer] = output
 		# Return output of last layer
 		return self.layer_outputs[-1] # output: batch x N x Dout
+
+
+	def to(self, device):
+		super().to(device)
+		self.device = device
