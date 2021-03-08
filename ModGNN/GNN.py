@@ -53,7 +53,7 @@ class GNN(nn.Module):
 		for layer in range(self.layers):
 			## Apply finput
 			layer_time = self.layers-1 - layer
-			obs = X[:,layer_time:layer_time+self.K+1,:,:].view(batch * (self.K+1) * N, Dobs) # TODO: delayed layers
+			obs = X[:,layer_time:layer_time+self.K+1,:,:].reshape(batch * (self.K+1) * N, Dobs) # TODO: delayed layers
 			Xc = self.network[layer].finput(obs, *self.layer_outputs[:-1]).view(batch, self.K+1, N, -1)
 			Ac = A[:,layer_time:layer_time+self.K,:,:]
 			Dinput = Xc.shape[-1]
