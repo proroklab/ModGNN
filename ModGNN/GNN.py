@@ -39,8 +39,8 @@ class GNN(nn.Module):
 
 		Parameters
 		----------
-		A : [tensor of size (batch x (K+1)+(nLayers-1) x N x N)] The adjacency matrix. dim=0 is the batch dimension, dim=1 is the temporal dimension where index 0 is the current timestep. In dim=2,3, if agent i can receive data from agent j, then A[•,•,i,j]=1, and otherwise A[•,•,i,j]=0
-		X : [tensor of size (batch x (K+1)+(nLayers-1) x N x Dobs)] The joint state. dim=0 is the batch dimension, dim=1 is the temporal dimension where index 0 is the current timestep. In dim=2,3, X[•,•,i,:] is the observation of agent i
+		A : [tensor of size (batch x (K+1)*(nLayers) x N x N)] The adjacency matrix. dim=0 is the batch dimension, dim=1 is the temporal dimension where index 0 is the current timestep. In dim=2,3, if agent i can receive data from agent j, then A[•,•,i,j]=1, and otherwise A[•,•,i,j]=0
+		X : [tensor of size (batch x (K+1)*(nLayers) x N x Dobs)] The joint state. dim=0 is the batch dimension, dim=1 is the temporal dimension where index 0 is the current timestep. In dim=2,3, X[•,•,i,:] is the observation of agent i
 		
 		Output
 		-------
@@ -50,13 +50,13 @@ class GNN(nn.Module):
 		if len(X.shape) == 3:
 			A = A.unsqueeze(1).repeat(1,self.K+1,1,1)
 			X = X.unsqueeze(1).repeat(1,self.K+1,1,1)
-		batch, _, N, Dobs = X.shape  # A: batch x (K+1)+(nLayers-1) x N x N      X: batch x (K+1)+(nLayers-1) x N x D
+		batch, _, N, Dobs = X.shape  # A: batch x (K+1)*(nLayers) x N x N      X: batch x (K+1)*(nLayers) x N x D
 		# Multi Layer
 		for layer in range(self.layers):
 			## Apply finput
-			layer_time = self.layers-1 - layer
+			layer_time = (self.K+1) * (self.layers-layer-1)
 			obs = X[:,layer_time:layer_time+self.K+1,:,:].reshape(batch * (self.K+1) * N, Dobs) # TODO: delayed layers
-			Xc = self.network[layer].finput(obs, *self.layer_outputs[:-1]).view(batch, self.K+1, N, -1)
+			Xc = self.network[layer].finput(obs, layer_outputs=self.layer_outputs[:-1]).view(batch, self.K+1, N, -1)
 			Ac = A[:,layer_time:layer_time+self.K,:,:]
 			Dinput = Xc.shape[-1]
 			## Calculate Y[k]

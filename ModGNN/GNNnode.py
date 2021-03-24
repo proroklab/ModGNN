@@ -48,7 +48,7 @@ class GNNnode(nn.Module):
 		self.clear()
 
 
-	def finput(self, X, *layer_outputs):
+	def finput(self, X, layer_outputs=[]):
 		"""
 		Processes the input into a compressed representation before communication
 
@@ -177,7 +177,7 @@ class GNNnode(nn.Module):
 		return output
 
 
-	def input(self, obs):
+	def input(self, obs, layer_outputs=[]):
 		"""
 		Sets the current observation.
 		For decentralised mode.
@@ -187,7 +187,7 @@ class GNNnode(nn.Module):
 		obs : [tensor of size (Dobs)] the observation for a single agent at a single timestep
 		"""
 		# x : D_obs
-		x = self.finput(obs)
+		x = self.finput(obs, layer_outputs)
 		self.Dinput = x.shape[0]
 		if self.Y is None:
 			self.Y = torch.zeros(1, self.K+1, self.Dinput)
