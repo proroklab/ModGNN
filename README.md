@@ -6,6 +6,7 @@ A modular graph neural network framework implemented in pytorch. The framework h
 * [Example](#example)
 * [Documentation](#documentation)
 * [Architecture](#architecture)
+* [Citation](#citation)
 
 ## Installation
 
@@ -86,3 +87,17 @@ The ```ModGNN.GNNnode``` class implements local GNN operations, while the ```Mod
 ### Multi-Layer Architecture
 
 ![Our framework's entire multi-layer architecture. At each layer, the message aggregation module disseminates the output from the last layer, and then the GNN node uses the data from all of the previous layers to compute an output.](https://github.com/Acciorocketships/ModGNN/blob/main/images/WholeArchitecture.png)
+
+## Citation
+If you use ModGNN in your work, please cite:
+```
+@article{kortvelesy2021modgnn,
+    title = {ModGNN: Expert Policy Approximation in Multi-Agent Systems with a Modular Graph Neural Network Architecture},
+    author = {Ryan Kortvelesy and Amanda Prorok},
+    journal = {International Conference on Robotics and Automation (ICRA)}
+    year = {2021},
+    archivePrefix = {arXiv},
+    eprint = {2103.13446},
+    primaryClass = {cs.LG}
+}
+```
